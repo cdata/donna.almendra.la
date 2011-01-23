@@ -1,0 +1,6 @@
+[submodule "source/vendor/mustache.js"]
+	path = source/vendor/mustache.js
+	url = https://github.com/janl/mustache.js.git
+[submodule "source/vendor/jquery"]
+	path = source/vendor/jquery
+	url = https://github.com/jquery/jquery.git
