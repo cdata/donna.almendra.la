@@ -1,0 +1,32 @@
+{
+    "name" : "Site",
+    "tasks" : {
+        
+        "JS" : {
+            
+            "input" : [
+                
+                "./source/javascripts/core.js"
+            ],
+            "output" : [
+                {
+                    "path" : "./server/static/javascripts/production/site.js",
+                    "minify" : true
+                }
+            ]
+        },
+        "CSS" : {
+            
+            "input" : [
+                
+                "source/stylesheets/css/core.css"
+            ],
+            "output" : [
+                {
+                    "path" : "./server/static/stylesheets/production/site.css",
+                    "minify" : true
+                }
+            ]
+        }
+    }
+}

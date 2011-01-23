@@ -1,0 +1,265 @@
+var util = require('util'),
+    path = require('path'),
+    fs = require('fs'),
+    exec = require('child_process').exec,
+    uglifyParser = require("uglify-js").parser,
+    uglifyProcessor = require("uglify-js").uglify;
+
+var Type = {
+        JS: {
+            toString: function() {
+                
+                return "JavaScript";
+            },
+            extension: "js"
+        },
+        CSS: {
+            toString: function() {
+                
+                return "Cascading Style Sheet";
+            },
+            extension: "css"
+        },
+        Sass: {
+            toString: function() {
+                
+                return "Sass";
+            },
+            extension: "scss"
+        }
+    },
+    buildLog = function(out) {
+        
+        util.puts(out);
+    },
+    getTarget = function(name, callback) {
+        
+        fs.readFile(
+            './source/targets/' + name + '.json',
+            function(error, data) {
+                
+                if(error) {
+                    
+                    callback(false);
+                } else {
+                    
+                    callback(JSON.parse(data));
+                }
+            }
+        );
+    },
+    writeFile = function(path, contents, callback) {
+        
+        buildLog('Writing to ' + path);
+        
+        fs.writeFile(
+            path,
+            contents,
+            function(error) {
+                
+                if(error) {
+                    
+                    buildLog("Error writing to " + path + ": " + error);
+                }
+                
+                callback();
+            }
+        );
+    },
+    concatenate = function(inputFiles, callback) {
+        
+        var contents = [],
+            complete = 0;
+        
+        inputFiles.forEach(
+            function(file, index) {
+                
+                fs.readFile(
+                    file,
+                    function(error, data) {
+                        
+                        complete++;
+                        
+                        if(error) {
+                            
+                            buildLog(error + " while reading concatenation target " + file);
+                            contents[index] = "/* ERROR READING FILE: " + file + " */\n";
+                        } else {
+                            
+                            contents[index] = data;
+                        }
+                        
+                        if(complete == inputFiles.length) {
+                            
+                            callback(contents.join('\n'));
+                        }
+                    }
+                );
+            }
+        );
+    },
+    minify = function(input, type, callback) {
+        
+        switch(type) {
+            
+            case Type.JS:
+                callback(uglifyProcessor.gen_code(uglifyProcessor.ast_squeeze(uglifyParser.parse(input))));
+                break;
+            case Type.CSS:
+                // Nothing for now, until I finish porting YUI Compressor
+                callback(input);
+                break;
+            default:
+                break;
+        }
+    },
+    buildTarget = function(target, type, callback) {
+        
+        var build = function(input, output, type, callback) {
+            
+            buildLog('Building ' + type.toString() + ' for "' + target + '"');
+            
+            concatenate(
+                input,
+                function(joined) {
+                    
+                    for(var i = 0, out; out = output[i++];) {
+                        
+                        if(out.minify) {
+                            
+                            minify(
+                                joined,
+                                type,
+                                function(minified) {
+                                    
+                                    writeFile(
+                                        out.path,
+                                        minified,
+                                        callback
+                                    );
+                                }
+                            );
+                        } else {
+                            
+                            writeFile(
+                                out.path,
+                                joined,
+                                callback
+                            );
+                        }
+                    }
+                }
+            );
+        };
+        
+        getTarget(
+            target,
+            function(targetData) {
+                
+                if(targetData) {
+                    
+                    buildLog("Starting \"" + target + "\" target..");
+                    
+                    if((!type || Type[type] == Type.JS) && targetData.tasks.JS) {
+                        
+                        build(targetData.tasks.JS.input, targetData.tasks.JS.output, Type.JS, callback);
+                    }
+                    
+                    if((!type || Type[type] == Type.CSS) && targetData.tasks.CSS) {
+                        
+                        build(targetData.tasks.CSS.input, targetData.tasks.CSS.output, Type.CSS, callback);
+                    }
+                }
+            }
+        );
+    };
+
+task(
+    'default',
+    ['all-targets'],
+    function() {
+        
+
+    }
+);
+
+task(
+    'target',
+    [],
+    function(target, type) {
+        
+        buildTarget(target, type, complete);
+    },
+    true
+);
+
+task(
+    'all-targets',
+    [],
+    function(type) {
+    
+        fs.readdir(
+            "./source/targets",
+            function(error, files) {
+                
+                if(error) {
+                    
+                    buildLog(error + ' while reading targets directory');
+                } else {
+                    
+                    files.forEach(
+                        function(file, index, files) {
+                            
+                            buildTarget(
+                                file.split('.')[0], 
+                                type, 
+                                function() {
+                                    
+                                    if(index == files.length - 1) {
+                                        
+                                        complete();
+                                    }
+                                }
+                            );
+                        }
+                    );
+                }
+            }
+        );
+    },
+    true
+);
+
+task(
+    'sass',
+    [],
+    function(watch) {
+        
+        if(watch) {
+            
+            // TODO: Implement watch functionality...
+            buildLog('Sorry, haven\'t actually built the watch functionality yet.. :( ..I\'ll just compile this for you instead!');
+        }
+        
+        exec(
+            'compass compile ./source/stylesheets',
+            function(error, stdout, stderr) {
+                
+                if(error) {
+                    
+                    buildLog('Error while attempting to compile Sass into stylesheets: ' + error);
+                }
+                
+                util.puts(stdout);
+                
+                if(stderr) {
+                    
+                    buildLog(stderr);
+                }
+                
+                complete();
+            }
+        );
+    },
+    true
+);

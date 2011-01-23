@@ -1,0 +1,24 @@
+{
+    "name" : "Environment",
+    "tasks" : {
+        
+        "JS" : {
+            
+            "input" : [
+                
+                "./source/vendor/modernizr/modernizr.js"
+            ],
+            "output" : [
+                
+                {
+                    "path" : "./server/static/javascripts/debug/environment.js",
+                    "minify" : false
+                },
+                {
+                    "path" : "./server/static/javascripts/production/environment.js",
+                    "minify" : true
+                }
+            ]
+        }
+    }
+}

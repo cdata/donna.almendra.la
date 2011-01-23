@@ -1,0 +1,25 @@
+{
+    "name" : "Third Party",
+    "tasks" : {
+        
+        "JS" : {
+            
+            "input" : [
+                
+                "./source/vendor/jquery/dist/jquery.js",
+                "./source/vendor/mustache.js/jquery.mustache.js"
+            ],
+            "output" : [
+                
+                {
+                    "path" : "./server/static/javascripts/production/thirdparty.js",
+                    "minify" : true
+                },
+                {
+                    "path" : "./server/static/javascripts/debug/thirdparty.js",
+                    "minify" : false
+                }
+            ]
+        }
+    }
+}

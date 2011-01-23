@@ -4,3 +4,6 @@
 [submodule "source/vendor/jquery"]
 	path = source/vendor/jquery
 	url = https://github.com/jquery/jquery.git
+[submodule "source/vendor/modernizr"]
+	path = source/vendor/modernizr
+	url = https://github.com/Modernizr/Modernizr.git
