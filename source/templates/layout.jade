@@ -1,0 +1,28 @@
+!!! 5
+html(lang="en")
+  head
+    title Donna Almendrala
+    
+    script(type="text/javascript", src="/javascripts/" + environment.jsMode + "/environment.js")
+    
+    - if(environment.devCSS)
+      - environment.devCSS.forEach(function(item) {
+        link(rel="stylesheet", media="screen", href=item)
+      - })
+    - else
+      link(rel="stylesheet", media="screen", href="/stylesheets/" + environment.cssMode + "/site.css")
+    
+  body
+    
+    div#Site!= body
+    
+    script(type="text/javascript", src="/javascripts/" + environment.jsMode + "/thirdparty.js")
+    
+    - if(environment.devJS)
+      - environment.devJS.forEach(function(item) {
+        script(type="text/javascript", src=item)
+      - })
+    - else
+      script(type="text/javascript", src="/javascripts/" + environment.jsMode + "/site.js")
+      
+      
